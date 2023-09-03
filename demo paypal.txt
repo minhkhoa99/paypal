@@ -1,0 +1,199 @@
+
+
+
+npm install --save paypal-rest-sdk express ejs
+
+
+
+
+const express = require('express');
+const ejs = require('ejs');
+const paypal = require('paypal-rest-sdk');
+
+const app = express();
+
+app.set('view engine', 'ejs');
+
+app.get('/', (req, res) => res.render('index'));
+
+app.listen(3000, () => console.log('Server Started'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ĐIỆN THOẠI GIÁ RẺ</title>
+
+    <style>
+        .dienthoai {
+            width: 178px;
+            height: auto;
+            float: left;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .dienthoai img {
+            padding-left: 20px;
+            padding-top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        .dienthoai p {
+            text-align: center;
+            margin-top: 5px;
+            height: 40px;
+        }
+        .dienthoai h4 {
+            color: red;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .button {
+            width: 100%;
+            height: auto;
+            margin: auto;
+            padding-top: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dienthoai">
+		<h1><img src="https://cdn.tgdd.vn/Products/Images/42/50920/dien-thoai-di-dong-apple-iphone-4S-dienmay.com-b.jpg"></h1>
+		<p>Iphone 4s</p>
+		<h4>25.00 USD</h4>
+        <div class="button">
+            <form action="/pay" method="post">
+                <input type="submit" value="Buy">
+            </form>
+        </div>
+	</div>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+app.post('/pay', (req, res) => {
+    const create_payment_json = {
+        "intent": "sale",
+        "payer": {
+            "payment_method": "paypal"
+        },
+        "redirect_urls": {
+            "return_url": "http://localhost:3000/success",
+            "cancel_url": "http://localhost:3000/cancel"
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [{
+                    "name": "Iphone 4S",
+                    "sku": "001",
+                    "price": "25.00",
+                    "currency": "USD",
+                    "quantity": 1
+                }]
+            },
+            "amount": {
+                "currency": "USD",
+                "total": "25.00"
+            },
+            "description": "Iphone 4S cũ giá siêu rẻ"
+        }]
+    };
+   
+
+});
+
+
+
+
+
+
+
+
+
+
+for (let i = 0; i < payment.links.length; i++) {
+   if (payment.links[i].rel === 'approval_url') {
+       res.redirect(payment.links[i].href);
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+app.get('/success', (req, res) => {
+
+    const payerId = req.query.PayerID;
+    const paymentId = req.query.paymentId;
+
+    const execute_payment_json = {
+        "payer_id": payerId,
+        "transactions": [{
+            "amount": {
+                "currency": "USD",
+                "total": "25.00"
+            }
+        }]
+    };
+    paypal.payment.execute(paymentId, execute_payment_json, function(error, payment) {
+        if (error) {
+            console.log(error.response);
+            throw error;
+        } else {
+            console.log(JSON.stringify(payment));
+            res.send('Success (Mua hàng thành công)');
+        }
+    });
+});
+
+app.get('/cancel',(req,res) => res.send('Cancelled (Đơn hàng đã hủy)'));
+
+
+
+
+
+
+
+
+
